@@ -24,6 +24,7 @@ local CoopSettings = {
 	["ModEnable"] = true,
 	["ShowColor"] = true,
 	["ShowName"] = true,
+	["ShowGhost"] = true,
 }
 
 CoopFont:Load("../mods/" .. CoopDirectory .. "/font/pftempestasevencondensed.fnt")
@@ -51,14 +52,16 @@ function CoopMod:OnGameRender()
 		local player = CoopGame:GetPlayer(i - 1)
 		
 		if player ~= nil then
-			if (CoopColors.Character[i] ~= nil and CoopSettings["ShowColor"]) then
-				player:SetColor(CoopColors.Character[i], 2, 100, false, false)
-			end
-			
-			if (CoopFont:IsLoaded() and CoopSettings["ShowName"]) then
-				local position = Isaac.WorldToScreen(player.Position)
+			if player:IsCoopGhost() == false or CoopSettings["ShowGhost"] then
+				if (CoopColors.Character[i] ~= nil and CoopSettings["ShowColor"]) then
+					player:SetColor(CoopColors.Character[i], 2, 100, false, false)
+				end
 				
-				CoopFont:DrawStringUTF8("P" .. i, position.X - 5, position.Y, CoopColors.Name[i])
+				if (CoopFont:IsLoaded() and CoopSettings["ShowName"]) then
+					local position = Isaac.WorldToScreen(player.Position)
+					
+					CoopFont:DrawStringUTF8("P" .. i, position.X - 5, position.Y, CoopColors.Name[i])
+				end
 			end
 		end
 	end
@@ -161,6 +164,28 @@ if ModConfigLoaded then
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["ShowName"] = currentBool
+			end
+		}
+	)
+	
+	ModConfig.AddSetting
+	(
+		CoopName,
+		"General",
+		{
+			Type = ModConfigMenu.OptionType.BOOLEAN,
+			CurrentSetting = function()
+				return CoopSettings["ShowGhost"]
+			end,
+			Display = function()
+				local onOff = "Off"
+				if CoopSettings["ShowGhost"] then
+					onOff = "On"
+				end
+				return 'Show ghost: ' .. onOff
+			end,
+			OnChange = function(currentBool)
+				CoopSettings["ShowGhost"] = currentBool
 			end
 		}
 	)
