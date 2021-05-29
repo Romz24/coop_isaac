@@ -4,7 +4,6 @@ local CoopName = "Co-op plus"
 local CoopMod = RegisterMod(CoopName, 1)
 local CoopGame = Game()
 local CoopFont = Font()
-local CoopDirectory = "coop_isaac"
 local CoopVersion = "1.0"
 local CoopColors = {
 	Character = {
@@ -27,7 +26,7 @@ local CoopSettings = {
 	["ShowGhost"] = true,
 }
 
-CoopFont:Load("../mods/" .. CoopDirectory .. "/font/pftempestasevencondensed.fnt")
+CoopFont:Load("font/pftempestasevencondensed.fnt")
 
 function CoopMod:OnGameRender()
 	if ModConfigLoaded and ModConfig.IsVisible then
