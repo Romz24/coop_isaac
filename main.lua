@@ -12,12 +12,7 @@ local CoopColors = {
 		Color(0.4, 0.8, 0.4),
 		Color(0.89, 0.8, 0.22),
 	},
-	Name = {
-		KColor(1.0, 0.4, 0.4, 0.25),
-		KColor(0.0, 0.4, 1.0, 0.25),
-		KColor(0.4, 0.8, 0.4, 0.25),
-		KColor(0.89, 0.8, 0.22, 0.25),
-	},
+	Name = { },
 }
 local CoopSettings = {
 	["ModEnable"] = true,
@@ -26,6 +21,10 @@ local CoopSettings = {
 	["ShowGhost"] = true,
 	["ButtonPressed"] = false,
 }
+
+for index, color in ipairs(CoopColors.Character) do
+	CoopColors.Name[index] = KColor(color.R, color.G, color.B, 0.4)
+end
 
 CoopFont:Load("font/pftempestasevencondensed.fnt")
 
@@ -69,7 +68,7 @@ function CoopMod:OnGameRender()
 		
 		if player ~= nil then
 			if player:IsCoopGhost() == false or CoopSettings["ShowGhost"] then
-				if (CoopColors.Character[i] ~= nil and CoopSettings["ShowColor"]) then
+				if CoopSettings["ShowColor"] then
 					player:SetColor(CoopColors.Character[i], 2, 100, false, false)
 				end
 				
