@@ -24,9 +24,22 @@ local CoopSettings = {
 	["ShowColor"] = true,
 	["ShowName"] = true,
 	["ShowGhost"] = true,
+	["ButtonPressed"] = false,
 }
 
 CoopFont:Load("font/pftempestasevencondensed.fnt")
+
+local function IsButtonPressed(players)
+	for i = 1, players do
+		local player = CoopGame:GetPlayer(i - 1)
+		
+		if player ~= nil and Input.IsActionPressed(ButtonAction.ACTION_MAP, player.ControllerIndex) then
+			return true
+		end
+	end
+	
+	return false
+end
 
 function CoopMod:OnGameRender()
 	if ModConfigLoaded and ModConfig.IsVisible then
@@ -45,6 +58,10 @@ function CoopMod:OnGameRender()
 	
 	if players < 2 then
 		return false -- not enough players
+	end
+	
+	if CoopSettings["ButtonPressed"] and IsButtonPressed(players) == false then
+		return false -- Button not pressed
 	end
 	
 	for i = 1, players do
@@ -185,6 +202,28 @@ if ModConfigLoaded then
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["ShowGhost"] = currentBool
+			end
+		}
+	)
+	
+	ModConfig.AddSetting
+	(
+		CoopName,
+		"General",
+		{
+			Type = ModConfigMenu.OptionType.BOOLEAN,
+			CurrentSetting = function()
+				return CoopSettings["ButtonPressed"]
+			end,
+			Display = function()
+				local onOff = "Off"
+				if CoopSettings["ButtonPressed"] then
+					onOff = "On"
+				end
+				return 'Show when the button is pressed: ' .. onOff
+			end,
+			OnChange = function(currentBool)
+				CoopSettings["ButtonPressed"] = currentBool
 			end
 		}
 	)
