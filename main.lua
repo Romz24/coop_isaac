@@ -19,6 +19,7 @@ local CoopColors = {
 	{name = "White", color = Color(0.9, 0.9, 0.9)},
 	{name = "Black", color = Color(0.1, 0.1, 0.1)},
 	{name = "Purple", color = Color(0.5, 0.0, 0.5)},
+	{name = "Aqua", color = Color(0.0, 0.1, 0.1)},
 }
 local CoopSettings = {
 	["ModEnable"] = true,
@@ -26,13 +27,14 @@ local CoopSettings = {
 	["ShowName"] = true,
 	["ShowGhost"] = true,
 	["ButtonPressed"] = false,
+	["GhostFly"] = false,
 }
 
 local function IsButtonPressed(players)
 	for i = 1, players do
 		local player = CoopGame:GetPlayer(i - 1)
 		
-		if player ~= nil and Input.IsActionPressed(ButtonAction.ACTION_MAP, player.ControllerIndex) then
+		if Input.IsActionPressed(ButtonAction.ACTION_MAP, player.ControllerIndex) then
 			return true
 		end
 	end
@@ -47,6 +49,17 @@ local function UpdatePlayersColor()
 		
 		CoopPlayers.Character[i] = color
 		CoopPlayers.Name[i] = KColor(color.R, color.G, color.B, 0.4)
+	end
+end
+
+local function UpdatePlayersFly()
+	local players = CoopGame:GetNumPlayers()
+	
+	for i = 1, players do
+		local player = CoopGame:GetPlayer(i - 1)
+		
+		player:AddCacheFlags(CacheFlag.CACHE_FLYING)
+		player:EvaluateItems()
 	end
 end
 
@@ -82,23 +95,28 @@ function CoopMod:OnGameRender()
 	for i = 1, players do
 		local player = CoopGame:GetPlayer(i - 1)
 		
-		if player ~= nil then
-			if player:IsCoopGhost() == false or CoopSettings["ShowGhost"] then
-				if CoopSettings["ShowColor"] then
-					player:SetColor(CoopPlayers.Character[i], 2, 100, false, false)
-				end
+		if player:IsCoopGhost() == false or CoopSettings["ShowGhost"] then
+			if CoopSettings["ShowColor"] then
+				player:SetColor(CoopPlayers.Character[i], 2, 100, false, false)
+			end
+			
+			if (CoopFont:IsLoaded() and CoopSettings["ShowName"]) then
+				local position = Isaac.WorldToScreen(player.Position)
 				
-				if (CoopFont:IsLoaded() and CoopSettings["ShowName"]) then
-					local position = Isaac.WorldToScreen(player.Position)
-					
-					CoopFont:DrawStringUTF8("P" .. i, position.X - 5, position.Y, CoopPlayers.Name[i])
-				end
+				CoopFont:DrawStringUTF8("P" .. i, position.X - 5, position.Y, CoopPlayers.Name[i])
 			end
 		end
 	end
 end
 
+function CoopMod:OnChangeFly(player, cache)
+	if player:IsCoopGhost() and CoopSettings["GhostFly"] then
+		player.CanFly = true
+	end
+end
+
 CoopMod:AddCallback(ModCallbacks.MC_POST_RENDER, CoopMod.OnGameRender)
+CoopMod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, CoopMod.OnChangeFly, CacheFlag.CACHE_FLYING)
 
 if ModConfigLoaded then
 	local json = require("json")
@@ -215,7 +233,7 @@ if ModConfigLoaded then
 				if CoopSettings["ShowGhost"] then
 					onOff = "On"
 				end
-				return 'Show ghost: ' .. onOff
+				return 'Highlight ghost: ' .. onOff
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["ShowGhost"] = currentBool
@@ -245,6 +263,29 @@ if ModConfigLoaded then
 		}
 	)
 	
+	ModConfig.AddSetting
+	(
+		CoopName,
+		"General",
+		{
+			Type = ModConfigMenu.OptionType.BOOLEAN,
+			CurrentSetting = function()
+				return CoopSettings["GhostFly"]
+			end,
+			Display = function()
+				local onOff = "Off"
+				if CoopSettings["GhostFly"] then
+					onOff = "On"
+				end
+				return 'Ghost fly: ' .. onOff
+			end,
+			OnChange = function(currentBool)
+				CoopSettings["GhostFly"] = currentBool
+				UpdatePlayersFly()
+			end
+		}
+	)
+	
 	for i = 1, CoopPlayers.Max do
 		ModConfig.AddSetting
 		(
@@ -253,12 +294,12 @@ if ModConfigLoaded then
 			{
 				Type = ModConfigMenu.OptionType.NUMBER,
 				CurrentSetting = function()
-					return CoopSettings["PlayerColor" .. i]
+					return CoopSettings["PlayerColor" .. i] or i
 				end,
 				Minimum = 1,
 				Maximum = #CoopColors,
 				Display = function()
-					return "Player " .. i .. ": " .. CoopColors[CoopSettings["PlayerColor" .. i]].name
+					return "Player " .. i .. ": " .. CoopColors[CoopSettings["PlayerColor" .. i] or i].name
 				end,
 				OnChange = function(currentNum)
 					CoopSettings["PlayerColor" .. i] = currentNum
