@@ -14,12 +14,12 @@ local CoopPlayers = {
 local CoopColors = {
 	{name = "Red", color = Color(1.0, 0.4, 0.4)},
 	{name = "Blue", color = Color(0.0, 0.4, 1.0)},
-	{name = "Green", color = Color(0.4, 0.8, 0.4)},
+	{name = "Green", color = Color(0.0, 0.95, 0.1)},
 	{name = "Yellow", color = Color(0.89, 0.8, 0.22)},
 	{name = "White", color = Color(0.9, 0.9, 0.9)},
 	{name = "Black", color = Color(0.1, 0.1, 0.1)},
 	{name = "Purple", color = Color(0.5, 0.0, 0.5)},
-	{name = "Aqua", color = Color(0.0, 0.1, 0.1)},
+	{name = "Aqua", color = Color(0.0, 0.9, 0.9)},
 }
 local CoopSettings = {
 	["ModEnable"] = true,
@@ -103,7 +103,7 @@ function CoopMod:OnGameRender()
 			if (CoopFont:IsLoaded() and CoopSettings["ShowName"]) then
 				local position = Isaac.WorldToScreen(player.Position)
 				
-				CoopFont:DrawStringUTF8("P" .. i, position.X - 5, position.Y, CoopPlayers.Name[i])
+				CoopFont:DrawString("P" .. i, position.X - 5, position.Y, CoopPlayers.Name[i])
 			end
 		end
 	end
