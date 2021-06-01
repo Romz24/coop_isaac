@@ -28,7 +28,12 @@ local CoopSettings = {
 	["ShowGhost"] = true,
 	["ButtonPressed"] = false,
 	["GhostFly"] = false,
+	["NameAlpha"] = 4,
 }
+
+for i = 1, CoopPlayers.Max do
+	CoopSettings["PlayerColor" .. i] = i
+end
 
 local function IsButtonPressed(players)
 	for i = 1, players do
@@ -44,11 +49,11 @@ end
 
 local function UpdatePlayersColor()
 	for i = 1, CoopPlayers.Max do
-		local player = CoopSettings["PlayerColor" .. i] or i
+		local player = CoopSettings["PlayerColor" .. i]
 		local color = CoopColors[player].color
 		
 		CoopPlayers.Character[i] = color
-		CoopPlayers.Name[i] = KColor(color.R, color.G, color.B, 0.4)
+		CoopPlayers.Name[i] = KColor(color.R, color.G, color.B, CoopSettings["NameAlpha"] / 10)
 	end
 end
 
@@ -66,6 +71,7 @@ end
 local function OnModInit()
 	CoopFont:Load("font/pftempestasevencondensed.fnt")
 	UpdatePlayersColor()
+	UpdatePlayersFly()
 	print("Mod " .. CoopName .. " v" .. CoopVersion .. " loaded!")
 end
 
@@ -74,7 +80,7 @@ function CoopMod:OnGameRender()
 		return false -- open mod config menu
 	end
 	
-	if CoopSettings["ModEnable"] == false then
+	if not CoopSettings["ModEnable"] then
 		return false -- mod disable
 	end
 	
@@ -88,22 +94,22 @@ function CoopMod:OnGameRender()
 		return false -- not enough players
 	end
 	
-	if CoopSettings["ButtonPressed"] and IsButtonPressed(players) == false then
+	if CoopSettings["ButtonPressed"] and not IsButtonPressed(players) then
 		return false -- Button not pressed
 	end
 	
 	for i = 1, players do
 		local player = CoopGame:GetPlayer(i - 1)
 		
-		if player:IsCoopGhost() == false or CoopSettings["ShowGhost"] then
-			if CoopSettings["ShowColor"] then
+		if not player:IsCoopGhost() or CoopSettings["ShowGhost"] then
+			if CoopSettings["ShowColor"] and CoopPlayers.Character[i] ~= nil then
 				player:SetColor(CoopPlayers.Character[i], 2, 100, false, false)
 			end
 			
 			if (CoopFont:IsLoaded() and CoopSettings["ShowName"]) then
 				local position = Isaac.WorldToScreen(player.Position)
 				
-				CoopFont:DrawString("P" .. i, position.X - 5, position.Y, CoopPlayers.Name[i])
+				CoopFont:DrawString("P" .. i, position.X - 5, position.Y, CoopPlayers.Name[i] or KColor(1.0, 1.0, 1.0, CoopSettings["NameAlpha"] / 10))
 			end
 		end
 	end
@@ -126,7 +132,11 @@ if ModConfigLoaded then
 			local setting = json.decode(CoopMod:LoadData())
 			
 			if setting["Version"] == CoopVersion then
-				CoopSettings = setting
+				for key, value in pairs(CoopSettings) do
+					if setting[key] ~= nil then
+						CoopSettings[key] = setting[key]
+					end
+				end
 			else
 				CoopMod:RemoveData()
 			end
@@ -165,7 +175,7 @@ if ModConfigLoaded then
 				if CoopSettings["ModEnable"] then
 					onOff = "On"
 				end
-				return 'Enamble mod: ' .. onOff
+				return "Enamble mod: " .. onOff
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["ModEnable"] = currentBool
@@ -189,7 +199,7 @@ if ModConfigLoaded then
 				if CoopSettings["ShowColor"] then
 					onOff = "On"
 				end
-				return 'Show color: ' .. onOff
+				return "Show color: " .. onOff
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["ShowColor"] = currentBool
@@ -211,7 +221,7 @@ if ModConfigLoaded then
 				if CoopSettings["ShowName"] then
 					onOff = "On"
 				end
-				return 'Show name: ' .. onOff
+				return "Show name: " .. onOff
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["ShowName"] = currentBool
@@ -233,11 +243,12 @@ if ModConfigLoaded then
 				if CoopSettings["ShowGhost"] then
 					onOff = "On"
 				end
-				return 'Highlight ghost: ' .. onOff
+				return "Highlight ghost: " .. onOff
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["ShowGhost"] = currentBool
-			end
+			end,
+			Info = "Allows you to turn off the highlighting of dead players"
 		}
 	)
 	
@@ -255,11 +266,12 @@ if ModConfigLoaded then
 				if CoopSettings["ButtonPressed"] then
 					onOff = "On"
 				end
-				return 'Show when the button is pressed: ' .. onOff
+				return "Show when the button is pressed: " .. onOff
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["ButtonPressed"] = currentBool
-			end
+			end,
+			Info = "Highlights players when the TAB button is pressed"
 		}
 	)
 	
@@ -277,12 +289,13 @@ if ModConfigLoaded then
 				if CoopSettings["GhostFly"] then
 					onOff = "On"
 				end
-				return 'Ghost fly: ' .. onOff
+				return "Ghost fly: " .. onOff
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["GhostFly"] = currentBool
 				UpdatePlayersFly()
-			end
+			end,
+			Info = "Allows dead players to fly through rocks and obstacles"
 		}
 	)
 	
@@ -294,12 +307,12 @@ if ModConfigLoaded then
 			{
 				Type = ModConfigMenu.OptionType.NUMBER,
 				CurrentSetting = function()
-					return CoopSettings["PlayerColor" .. i] or i
+					return CoopSettings["PlayerColor" .. i]
 				end,
 				Minimum = 1,
 				Maximum = #CoopColors,
 				Display = function()
-					return "Player " .. i .. ": " .. CoopColors[CoopSettings["PlayerColor" .. i] or i].name
+					return "Player " .. i .. ": " .. CoopColors[CoopSettings["PlayerColor" .. i]].name
 				end,
 				OnChange = function(currentNum)
 					CoopSettings["PlayerColor" .. i] = currentNum
@@ -309,6 +322,30 @@ if ModConfigLoaded then
 			}
 		)
 	end
+	
+	ModConfig.AddSpace(CoopName, "Color")
+	
+	ModConfig.AddSetting
+	(
+		CoopName,
+		"Color",
+		{
+			Type = ModConfigMenu.OptionType.NUMBER,
+			CurrentSetting = function()
+				return CoopSettings["NameAlpha"]
+			end,
+			Minimum = 1,
+			Maximum = 10,
+			Display = function()
+				return "Name alpha: " .. CoopSettings["NameAlpha"] / 10
+			end,
+			OnChange = function(currentNum)
+				CoopSettings["NameAlpha"] = currentNum
+				UpdatePlayersColor()
+			end,
+			Info = "Change player name alpha"
+		}
+	)
 else
 	OnModInit()
 end
