@@ -63,8 +63,10 @@ local function UpdatePlayersFly()
 	for i = 1, players do
 		local player = CoopGame:GetPlayer(i - 1)
 		
-		player:AddCacheFlags(CacheFlag.CACHE_FLYING)
-		player:EvaluateItems()
+		if player:IsCoopGhost() then
+			player:AddCacheFlags(CacheFlag.CACHE_FLYING)
+			player:EvaluateItems()
+		end
 	end
 end
 
@@ -106,7 +108,7 @@ function CoopMod:OnGameRender()
 				player:SetColor(CoopPlayers.Character[i], 2, 100, false, false)
 			end
 			
-			if (CoopFont:IsLoaded() and CoopSettings["ShowName"]) then
+			if CoopFont:IsLoaded() and CoopSettings["ShowName"] then
 				local position = Isaac.WorldToScreen(player.Position)
 				
 				CoopFont:DrawString("P" .. i, position.X - 5, position.Y, CoopPlayers.Name[i] or KColor(1.0, 1.0, 1.0, CoopSettings["NameAlpha"] / 10))
