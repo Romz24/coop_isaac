@@ -35,8 +35,8 @@ for i = 1, CoopPlayers.Max do
 	CoopSettings["PlayerColor" .. i] = i
 end
 
-local function IsButtonPressed(players)
-	for i = 1, players do
+local function IsButtonPressed()
+	for i = 1, CoopGame:GetNumPlayers() do
 		local player = CoopGame:GetPlayer(i - 1)
 		
 		if Input.IsActionPressed(ButtonAction.ACTION_MAP, player.ControllerIndex) then
@@ -45,6 +45,23 @@ local function IsButtonPressed(players)
 	end
 	
 	return false
+end
+
+local function GetPlayers()
+	local controllers = { }
+	local count = 0
+	
+	for i = 1, CoopGame:GetNumPlayers() do
+		local player = CoopGame:GetPlayer(i - 1)
+		local index = player.ControllerIndex
+		
+		if not controllers[index] then
+			controllers[index] = true
+			count = count + 1
+		end
+	end
+	
+	return count
 end
 
 local function UpdatePlayersColor()
@@ -58,9 +75,7 @@ local function UpdatePlayersColor()
 end
 
 local function UpdatePlayersFly()
-	local players = CoopGame:GetNumPlayers()
-	
-	for i = 1, players do
+	for i = 1, CoopGame:GetNumPlayers() do
 		local player = CoopGame:GetPlayer(i - 1)
 		
 		if player:IsCoopGhost() then
@@ -90,28 +105,28 @@ function CoopMod:OnGameRender()
 		return false -- game in paused
 	end
 	
-	local players = CoopGame:GetNumPlayers()
-	
-	if players < 2 then
+	if GetPlayers() < 2 then
 		return false -- not enough players
 	end
 	
-	if CoopSettings["ButtonPressed"] and not IsButtonPressed(players) then
+	if CoopSettings["ButtonPressed"] and not IsButtonPressed() then
 		return false -- Button not pressed
 	end
 	
-	for i = 1, players do
+	for i = 1, CoopGame:GetNumPlayers() do
 		local player = CoopGame:GetPlayer(i - 1)
 		
 		if not player:IsCoopGhost() or CoopSettings["ShowGhost"] then
-			if CoopSettings["ShowColor"] and CoopPlayers.Character[i] ~= nil then
-				player:SetColor(CoopPlayers.Character[i], 2, 100, false, false)
+			local index = player.ControllerIndex
+			
+			if CoopSettings["ShowColor"] and CoopPlayers.Character[index] then
+				player:SetColor(CoopPlayers.Character[index], 2, 100, false, false)
 			end
 			
 			if CoopFont:IsLoaded() and CoopSettings["ShowName"] then
 				local position = Isaac.WorldToScreen(player.Position)
 				
-				CoopFont:DrawString("P" .. i, position.X - 5, position.Y, CoopPlayers.Name[i] or KColor(1.0, 1.0, 1.0, CoopSettings["NameAlpha"] / 10))
+				CoopFont:DrawString("P" .. index, position.X - 5, position.Y, CoopPlayers.Name[index] or KColor(1.0, 1.0, 1.0, CoopSettings["NameAlpha"] / 10))
 			end
 		end
 	end
@@ -135,7 +150,7 @@ if ModConfigLoaded then
 			
 			if setting["Version"] == CoopVersion then
 				for key, value in pairs(CoopSettings) do
-					if setting[key] ~= nil then
+					if setting[key] then
 						CoopSettings[key] = setting[key]
 					end
 				end
