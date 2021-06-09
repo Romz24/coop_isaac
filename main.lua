@@ -26,9 +26,10 @@ local CoopSettings = {
 	["ShowColor"] = true,
 	["ShowName"] = true,
 	["UseButton"] = false,
+	["TearColor"] = true,
 	["GhostShow"] = true,
-	["GhostFly"] = false,
-	["NameAlpha"] = 4,
+	["GhostFly"] = true,
+	["NameAlpha"] = 5,
 }
 
 for i = 1, CoopPlayers.Max do
@@ -86,21 +87,20 @@ local function UpdatePlayersColor()
 	end
 end
 
-local function UpdatePlayersFly()
+local function UpdatePlayersEvaluate()
 	for i = 1, CoopGame:GetNumPlayers() do
 		local player = CoopGame:GetPlayer(i - 1)
 		
-		if player:IsCoopGhost() then
-			player:AddCacheFlags(CacheFlag.CACHE_FLYING)
-			player:EvaluateItems()
-		end
+		player:AddCacheFlags(CacheFlag.CACHE_FLYING)
+		player:AddCacheFlags(CacheFlag.CACHE_TEARCOLOR)
+		player:EvaluateItems()
 	end
 end
 
 local function OnModInit()
 	CoopFont:Load("font/pftempestasevencondensed.fnt")
 	UpdatePlayersColor()
-	UpdatePlayersFly()
+	UpdatePlayersEvaluate()
 	print("Mod " .. CoopName .. " v" .. CoopVersion .. " loaded!")
 end
 
@@ -161,14 +161,22 @@ function CoopMod:OnGameRender()
 	end
 end
 
-function CoopMod:OnChangeFly(player, cache)
+function CoopMod:OnEvaluateCache(player, cache)
 	if player:IsCoopGhost() and CoopSettings["GhostFly"] then
 		player.CanFly = true
+	end
+	
+	if CoopSettings["TearColor"] then
+		local index = player.ControllerIndex + 1
+		
+		if CoopPlayers.Character[index] then
+			player.TearColor = CoopPlayers.Character[index]
+		end
 	end
 end
 
 CoopMod:AddCallback(ModCallbacks.MC_POST_RENDER, CoopMod.OnGameRender)
-CoopMod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, CoopMod.OnChangeFly, CacheFlag.CACHE_FLYING)
+CoopMod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, CoopMod.OnEvaluateCache)
 
 if ModConfigLoaded then
 	local json = require("json")
@@ -282,6 +290,31 @@ if ModConfigLoaded then
 		{
 			Type = ModConfigMenu.OptionType.BOOLEAN,
 			CurrentSetting = function()
+				return CoopSettings["TearColor"]
+			end,
+			Display = function()
+				local onOff = "Off"
+				if CoopSettings["TearColor"] then
+					onOff = "On"
+				end
+				return "Change tear color: " .. onOff
+			end,
+			OnChange = function(currentBool)
+				CoopSettings["TearColor"] = currentBool
+				
+				UpdatePlayersEvaluate()
+			end,
+			Info = "Make the color of tears the same as the color of the player"
+		}
+	)
+	
+	ModConfig.AddSetting
+	(
+		CoopName,
+		"General",
+		{
+			Type = ModConfigMenu.OptionType.BOOLEAN,
+			CurrentSetting = function()
 				return CoopSettings["UseButton"]
 			end,
 			Display = function()
@@ -294,7 +327,7 @@ if ModConfigLoaded then
 			OnChange = function(currentBool)
 				CoopSettings["UseButton"] = currentBool
 			end,
-			Info = "Highlights players only when the TAB key is pressed"
+			Info = "Highlights players and name only when the TAB key is pressed"
 		}
 	)
 	
@@ -339,7 +372,8 @@ if ModConfigLoaded then
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["GhostFly"] = currentBool
-				UpdatePlayersFly()
+				
+				UpdatePlayersEvaluate()
 			end,
 			Info = "Allows ghost to fly through rocks and obstacles"
 		}
@@ -362,9 +396,11 @@ if ModConfigLoaded then
 				end,
 				OnChange = function(currentNum)
 					CoopSettings["PlayerColor" .. i] = currentNum
+					
 					UpdatePlayersColor()
+					UpdatePlayersEvaluate()
 				end,
-				Info = "Change player color"
+				Info = "Change player model color"
 			}
 		)
 	end
@@ -387,6 +423,7 @@ if ModConfigLoaded then
 			end,
 			OnChange = function(currentNum)
 				CoopSettings["NameAlpha"] = currentNum
+				
 				UpdatePlayersColor()
 			end,
 			Info = "Change player name alpha"
