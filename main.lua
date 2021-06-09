@@ -53,7 +53,7 @@ local function GetPlayers()
 	
 	for i = 1, CoopGame:GetNumPlayers() do
 		local player = CoopGame:GetPlayer(i - 1)
-		local index = player.ControllerIndex
+		local index = player.ControllerIndex + 1
 		
 		if not controllers[index] then
 			controllers[index] = true
@@ -117,7 +117,7 @@ function CoopMod:OnGameRender()
 		local player = CoopGame:GetPlayer(i - 1)
 		
 		if not player:IsCoopGhost() or CoopSettings["ShowGhost"] then
-			local index = player.ControllerIndex
+			local index = player.ControllerIndex + 1
 			
 			if CoopSettings["ShowColor"] and CoopPlayers.Character[index] then
 				player:SetColor(CoopPlayers.Character[index], 2, 100, false, false)
