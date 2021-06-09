@@ -25,8 +25,8 @@ local CoopSettings = {
 	["ModEnable"] = true,
 	["ShowColor"] = true,
 	["ShowName"] = true,
-	["ShowGhost"] = true,
-	["ButtonPressed"] = false,
+	["UseButton"] = false,
+	["GhostShow"] = true,
 	["GhostFly"] = false,
 	["NameAlpha"] = 4,
 }
@@ -62,6 +62,18 @@ local function GetPlayers()
 	end
 	
 	return count
+end
+
+local function GetAlivePlayerPosition()
+	for i = 1, CoopGame:GetNumPlayers() do
+		local player = CoopGame:GetPlayer(i - 1)
+		
+		if not player:IsCoopGhost() then
+			return player.Position
+		end
+	end
+	
+	return Vector.Zero
 end
 
 local function UpdatePlayersColor()
@@ -109,14 +121,31 @@ function CoopMod:OnGameRender()
 		return false -- not enough players
 	end
 	
-	if CoopSettings["ButtonPressed"] and not IsButtonPressed() then
+	if CoopSettings["UseButton"] and not IsButtonPressed() then
 		return false -- Button not pressed
 	end
 	
 	for i = 1, CoopGame:GetNumPlayers() do
 		local player = CoopGame:GetPlayer(i - 1)
 		
-		if not player:IsCoopGhost() or CoopSettings["ShowGhost"] then
+		if player:IsCoopGhost() and not CoopSettings["GhostShow"] then
+			player.Position = GetAlivePlayerPosition()
+			player.ControlsCooldown = 1000
+			
+			if player.Visible then
+				player.ControlsEnabled = false
+				player.Visible = false
+			end
+		end
+		
+		if not player.Visible and (not player:IsCoopGhost() or CoopSettings["GhostShow"]) then
+			player.Position = GetAlivePlayerPosition()
+			player.ControlsCooldown = 0
+			player.ControlsEnabled = true
+			player.Visible = true
+		end
+		
+		if not player:IsCoopGhost() or CoopSettings["GhostShow"] then
 			local index = player.ControllerIndex + 1
 			
 			if CoopSettings["ShowColor"] and CoopPlayers.Character[index] then
@@ -253,49 +282,49 @@ if ModConfigLoaded then
 		{
 			Type = ModConfigMenu.OptionType.BOOLEAN,
 			CurrentSetting = function()
-				return CoopSettings["ShowGhost"]
+				return CoopSettings["UseButton"]
 			end,
 			Display = function()
 				local onOff = "Off"
-				if CoopSettings["ShowGhost"] then
+				if CoopSettings["UseButton"] then
 					onOff = "On"
 				end
-				return "Highlight ghost: " .. onOff
+				return "Use button: " .. onOff
 			end,
 			OnChange = function(currentBool)
-				CoopSettings["ShowGhost"] = currentBool
+				CoopSettings["UseButton"] = currentBool
 			end,
-			Info = "Allows you to turn off the highlighting of dead players"
+			Info = "Highlights players only when the TAB key is pressed"
 		}
 	)
 	
 	ModConfig.AddSetting
 	(
 		CoopName,
-		"General",
+		"Ghost",
 		{
 			Type = ModConfigMenu.OptionType.BOOLEAN,
 			CurrentSetting = function()
-				return CoopSettings["ButtonPressed"]
+				return CoopSettings["GhostShow"]
 			end,
 			Display = function()
 				local onOff = "Off"
-				if CoopSettings["ButtonPressed"] then
+				if CoopSettings["GhostShow"] then
 					onOff = "On"
 				end
-				return "Show when the button is pressed: " .. onOff
+				return "Visible: " .. onOff
 			end,
 			OnChange = function(currentBool)
-				CoopSettings["ButtonPressed"] = currentBool
+				CoopSettings["GhostShow"] = currentBool
 			end,
-			Info = "Highlights players when the TAB button is pressed"
+			Info = "Allows you to hide ghost so they don't interfere with the game"
 		}
 	)
 	
 	ModConfig.AddSetting
 	(
 		CoopName,
-		"General",
+		"Ghost",
 		{
 			Type = ModConfigMenu.OptionType.BOOLEAN,
 			CurrentSetting = function()
@@ -306,13 +335,13 @@ if ModConfigLoaded then
 				if CoopSettings["GhostFly"] then
 					onOff = "On"
 				end
-				return "Ghost fly: " .. onOff
+				return "Enable fly: " .. onOff
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["GhostFly"] = currentBool
 				UpdatePlayersFly()
 			end,
-			Info = "Allows dead players to fly through rocks and obstacles"
+			Info = "Allows ghost to fly through rocks and obstacles"
 		}
 	)
 	
