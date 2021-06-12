@@ -5,7 +5,7 @@ local CoopMod = RegisterMod(CoopName, 1)
 local CoopGame = Game()
 local CoopFont = Font()
 local CoopVersion = "1.7"
-local CoopMaxPlayers = 4
+local CoopInit = false
 local CoopPlayers = {
 	Max = 4,
 	Character = { },
@@ -98,10 +98,15 @@ local function UpdatePlayersEvaluate()
 end
 
 local function OnModInit()
-	CoopFont:Load("font/pftempestasevencondensed.fnt")
 	UpdatePlayersColor()
 	UpdatePlayersEvaluate()
-	print("Mod " .. CoopName .. " v" .. CoopVersion .. " loaded!")
+	
+	if not CoopInit then
+		CoopFont:Load("font/pftempestasevencondensed.fnt")
+		print("Mod " .. CoopName .. " v" .. CoopVersion .. " loaded!")
+		
+		CoopInit = true
+	end
 end
 
 function CoopMod:OnGameRender()
