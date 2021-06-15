@@ -6,7 +6,9 @@ local CoopGame = Game()
 local CoopFont = Font()
 local CoopVersion = "1.7"
 local CoopInit = false
+local CoopEnable = false
 local CoopPlayers = {
+	Count = 1,
 	Max = 4,
 	Character = { },
 	Name = { },
@@ -49,15 +51,12 @@ local function IsButtonPressed()
 end
 
 local function GetPlayers()
-	local controllers = { }
 	local count = 0
 	
 	for i = 1, CoopGame:GetNumPlayers() do
 		local player = CoopGame:GetPlayer(i - 1)
-		local index = player.ControllerIndex + 1
 		
-		if not controllers[index] then
-			controllers[index] = true
+		if player.Index == player:GetMainTwin().Index then
 			count = count + 1
 		end
 	end
@@ -107,6 +106,8 @@ local function OnModInit()
 		
 		CoopInit = true
 	end
+	
+	CoopPlayers.Count = 1
 end
 
 function CoopMod:OnGameRender()
@@ -122,8 +123,12 @@ function CoopMod:OnGameRender()
 		return false -- game in paused
 	end
 	
-	if GetPlayers() < 2 then
-		return false -- not enough players
+	if not CoopEnable then
+		if GetPlayers() < 2 then
+			return false -- not enough players
+		end
+		
+		CoopEnable = true
 	end
 	
 	if CoopSettings["UseButton"] and not IsButtonPressed() then
@@ -132,6 +137,21 @@ function CoopMod:OnGameRender()
 	
 	for i = 1, CoopGame:GetNumPlayers() do
 		local player = CoopGame:GetPlayer(i - 1)
+		
+		if not player:GetData()["CoopIndex"] then
+			local twin = player:GetMainTwin():GetData()["CoopIndex"]
+			
+			if twin then
+				player:GetData()["CoopIndex"] = twin
+			else
+				player:GetData()["CoopIndex"] = CoopPlayers.Count
+				CoopPlayers.Count = CoopPlayers.Count + 1
+			end
+			
+			player:AddCacheFlags(CacheFlag.CACHE_FLYING)
+			player:AddCacheFlags(CacheFlag.CACHE_TEARCOLOR)
+			player:EvaluateItems()
+		end
 		
 		if player:IsCoopGhost() and not CoopSettings["GhostShow"] then
 			player.Position = GetAlivePlayerPosition()
@@ -151,7 +171,7 @@ function CoopMod:OnGameRender()
 		end
 		
 		if not player:IsCoopGhost() or CoopSettings["GhostShow"] then
-			local index = player.ControllerIndex + 1
+			local index = player:GetData()["CoopIndex"]
 			
 			if CoopSettings["ShowColor"] and CoopPlayers.Character[index] then
 				player:SetColor(CoopPlayers.Character[index], 2, 100, false, false)
@@ -167,15 +187,17 @@ function CoopMod:OnGameRender()
 end
 
 function CoopMod:OnEvaluateCache(player, cache)
-	if player:IsCoopGhost() and CoopSettings["GhostFly"] then
-		player.CanFly = true
-	end
-	
-	if CoopSettings["TearColor"] then
-		local index = player.ControllerIndex + 1
+	if CoopEnable and CoopSettings["ModEnable"] then
+		if cache == CacheFlag.CACHE_FLYING and player:IsCoopGhost() and CoopSettings["GhostFly"] then
+			player.CanFly = true
+		end
 		
-		if CoopPlayers.Character[index] then
-			player.TearColor = CoopPlayers.Character[index]
+		if cache == CacheFlag.CACHE_TEARCOLOR and CoopSettings["TearColor"] then
+			local index = player:GetData()["CoopIndex"]
+			
+			if CoopPlayers.Character[index] then
+				player.TearColor = CoopPlayers.Character[index]
+			end
 		end
 	end
 end
@@ -238,6 +260,8 @@ if ModConfigLoaded then
 			end,
 			OnChange = function(currentBool)
 				CoopSettings["ModEnable"] = currentBool
+				
+				UpdatePlayersEvaluate()
 			end
 		}
 	)
