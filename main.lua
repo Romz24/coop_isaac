@@ -108,6 +108,7 @@ local function OnModInit()
 	end
 	
 	CoopPlayers.Count = 1
+	CoopEnable = false
 end
 
 function CoopMod:OnGameRender()
