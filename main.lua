@@ -7,6 +7,7 @@ local CoopFont = Font()
 local CoopVersion = "1.9"
 local CoopInit = false
 local CoopEnable = false
+local CoopMirrorRoom = false
 local CoopPlayers = {
 	Count = 1,
 	Max = 4,
@@ -74,6 +75,30 @@ local function GetAlivePlayerPosition()
 	end
 	
 	return Vector.Zero
+end
+
+local function GetScreenSize()
+	local room = CoopGame:GetRoom()
+	local pos = room:WorldToScreenPosition(Vector.Zero) - room:GetRenderScrollOffset() - CoopGame.ScreenShakeOffset
+	
+	local rx = pos.X + 60 * 26 / 40
+	local ry = pos.Y + 140 * (26 / 40)
+	
+	return Vector(rx*2 + 13*26, ry*2 + 7*26)
+end
+
+local function IsMirrorRoom()
+	local level = CoopGame:GetLevel()
+	
+	for i = 0, 168 do
+		local data = level:GetRoomByIdx(i).Data
+		
+		if data and data.Name == 'Knife Piece Room' then
+			return true
+		end
+	end
+	
+	return false
 end
 
 local function UpdatePlayersColor()
@@ -181,6 +206,11 @@ function CoopMod:OnGameRender()
 			if CoopFont:IsLoaded() and CoopSettings["ShowName"] then
 				local position = Isaac.WorldToScreen(player.Position)
 				
+				if CoopMirrorRoom then
+					local screenCenter = GetScreenSize() / 2
+					position.X = position.X - (position - screenCenter).X * 2
+				end
+				
 				CoopFont:DrawString("P" .. index, position.X - 5, position.Y, CoopPlayers.Name[index] or KColor(1.0, 1.0, 1.0, CoopSettings["NameAlpha"] / 10))
 			end
 		end
@@ -203,8 +233,17 @@ function CoopMod:OnEvaluateCache(player, cache)
 	end
 end
 
+function CoopMod:OnChangeRoom()
+	if CoopGame:GetLevel():GetAbsoluteStage() == LevelStage.STAGE1_2 then
+		CoopMirrorRoom = IsMirrorRoom()
+	else
+		CoopMirrorRoom = false
+	end
+end
+
 CoopMod:AddCallback(ModCallbacks.MC_POST_RENDER, CoopMod.OnGameRender)
 CoopMod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, CoopMod.OnEvaluateCache)
+CoopMod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, CoopMod.OnChangeRoom)
 
 if ModConfigLoaded then
 	local json = require("json")
