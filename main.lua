@@ -23,6 +23,7 @@ local CoopColors = {
 	{name = "Black", color = Color(0.1, 0.1, 0.1)},
 	{name = "Purple", color = Color(0.5, 0.0, 0.5)},
 	{name = "Aqua", color = Color(0.0, 0.9, 0.9)},
+	{name = "Orange", color = Color(1.0, 0.64, 0.0)},
 }
 local CoopSettings = {
 	["ModEnable"] = true,
