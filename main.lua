@@ -252,14 +252,10 @@ if ModConfigLoaded then
 		if CoopMod:HasData() then
 			local setting = json.decode(CoopMod:LoadData())
 			
-			if setting["Version"] == CoopVersion then
-				for key, value in pairs(CoopSettings) do
-					if setting[key] then
-						CoopSettings[key] = setting[key]
-					end
+			for key, value in pairs(CoopSettings) do
+				if setting[key] ~= nil then
+					CoopSettings[key] = setting[key]
 				end
-			else
-				CoopMod:RemoveData()
 			end
 		end
 		
@@ -267,8 +263,6 @@ if ModConfigLoaded then
 	end
 	
 	function CoopMod:OnGameExit()
-		CoopSettings["Version"] = CoopVersion
-		
 		CoopMod:SaveData(json.encode(CoopSettings))
 	end
 	
