@@ -9,7 +9,6 @@ local CoopInit = false
 local CoopEnable = false
 local CoopMirrorRoom = false
 local CoopPlayers = {
-	Count = 1,
 	Max = 4,
 	Character = { },
 	Name = { },
@@ -102,6 +101,22 @@ local function IsMirrorRoom()
 	return false
 end
 
+local function GetEmptyPlayerSlot()
+	local index = 0
+	
+	::search::
+	index = index + 1
+	for i = 1, CoopGame:GetNumPlayers() do
+		local player = CoopGame:GetPlayer(i - 1)
+		
+		if player:GetData()["CoopIndex"] == index then
+			goto search
+		end
+	end
+	
+	return index
+end
+
 local function UpdatePlayersColor()
 	for i = 1, CoopPlayers.Max do
 		local player = CoopSettings["PlayerColor" .. i]
@@ -133,7 +148,6 @@ local function OnModInit()
 		CoopInit = true
 	end
 	
-	CoopPlayers.Count = 1
 	CoopEnable = false
 end
 
@@ -165,14 +179,13 @@ function CoopMod:OnGameRender()
 	for i = 1, CoopGame:GetNumPlayers() do
 		local player = CoopGame:GetPlayer(i - 1)
 		
-		if not player:GetData()["CoopIndex"] then
+		if player:GetData()["CoopIndex"] == nil then
 			local twin = player:GetMainTwin():GetData()["CoopIndex"]
 			
-			if twin then
+			if twin ~= nil then
 				player:GetData()["CoopIndex"] = twin
 			else
-				player:GetData()["CoopIndex"] = CoopPlayers.Count
-				CoopPlayers.Count = CoopPlayers.Count + 1
+				player:GetData()["CoopIndex"] = GetEmptyPlayerSlot()
 			end
 			
 			player:AddCacheFlags(CacheFlag.CACHE_FLYING)
