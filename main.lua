@@ -6,7 +6,7 @@ local CoopGame = Game()
 local CoopFont = Font()
 local CoopVersion = "1.10"
 local CoopInit = false
-local CoopEnable = false
+local CoopStart = false
 local CoopMirrorRoom = false
 local CoopPlayers = {
 	Max = 4,
@@ -25,15 +25,14 @@ local CoopColors = {
 	{name = "Orange", color = Color(1.0, 0.64, 0.0)},
 }
 local CoopSettings = {
-	["ModEnable"] = true,
 	["FixBossRoom"] = true,
 	["ShowColor"] = true,
 	["ShowName"] = true,
 	["UseButton"] = false,
 	["TearColor"] = true,
-	["GhostShow"] = true,
+	["GhostShow"] = false,
 	["GhostFly"] = true,
-	["NameAlpha"] = 5,
+	["NameAlpha"] = 3,
 }
 
 for i = 1, CoopPlayers.Max do
@@ -149,7 +148,7 @@ local function OnModInit()
 		CoopInit = true
 	end
 	
-	CoopEnable = false
+	CoopStart = false
 end
 
 function CoopMod:OnGameRender()
@@ -157,20 +156,16 @@ function CoopMod:OnGameRender()
 		return false -- open mod config menu
 	end
 	
-	if not CoopSettings["ModEnable"] then
-		return false -- mod disable
-	end
-	
 	if CoopGame:IsPaused() then
 		return false -- game in paused
 	end
 	
-	if not CoopEnable then
+	if not CoopStart then
 		if GetPlayers() < 2 then
 			return false -- not enough players
 		end
 		
-		CoopEnable = true
+		CoopStart = true
 	end
 	
 	if CoopSettings["UseButton"] and not IsButtonPressed() then
@@ -233,7 +228,7 @@ function CoopMod:OnGameRender()
 end
 
 function CoopMod:OnEvaluateCache(player, cache)
-	if CoopEnable and CoopSettings["ModEnable"] then
+	if CoopStart then
 		if cache == CacheFlag.CACHE_FLYING and player:IsCoopGhost() and CoopSettings["GhostFly"] then
 			player.CanFly = true
 		end
@@ -257,7 +252,7 @@ function CoopMod:OnChangeRoom()
 end
 
 function CoopMod:OnPickupInit(pickup)
-	if CoopEnable and CoopSettings["ModEnable"] and CoopSettings["FixBossRoom"] then
+	if CoopStart and CoopSettings["FixBossRoom"] then
 		local isCollectible = pickup.Variant == PickupVariant.PICKUP_COLLECTIBLE
 		local isBossRoom = CoopGame:GetRoom():GetType() == RoomType.ROOM_BOSS
 		local isGreedMode = CoopGame:IsGreedMode()
@@ -307,32 +302,6 @@ if ModConfigLoaded then
 	ModConfig.AddText(CoopName, "Info", "Version " .. CoopVersion)
 	ModConfig.AddSpace(CoopName, "Info")
 	ModConfig.AddText(CoopName, "Info", "by Romzes")
-	
-	ModConfig.AddSetting
-	(
-		CoopName,
-		"General",
-		{
-			Type = ModConfigMenu.OptionType.BOOLEAN,
-			CurrentSetting = function()
-				return CoopSettings["ModEnable"]
-			end,
-			Display = function()
-				local onOff = "Off"
-				if CoopSettings["ModEnable"] then
-					onOff = "On"
-				end
-				return "Enamble mod: " .. onOff
-			end,
-			OnChange = function(currentBool)
-				CoopSettings["ModEnable"] = currentBool
-				
-				UpdatePlayersEvaluate()
-			end
-		}
-	)
-	
-	ModConfig.AddSpace(CoopName, "General")
 	
 	ModConfig.AddSetting
 	(
