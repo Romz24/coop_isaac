@@ -25,7 +25,6 @@ local CoopColors = {
 	{name = "Orange", color = Color(1.0, 0.64, 0.0)},
 }
 local CoopSettings = {
-	["FixBossRoom"] = true,
 	["ShowColor"] = true,
 	["ShowName"] = true,
 	["UseButton"] = false,
@@ -251,26 +250,9 @@ function CoopMod:OnChangeRoom()
 	end
 end
 
-function CoopMod:OnPickupInit(pickup)
-	if CoopStart and CoopSettings["FixBossRoom"] then
-		local isCollectible = pickup.Variant == PickupVariant.PICKUP_COLLECTIBLE
-		local isBossRoom = CoopGame:GetRoom():GetType() == RoomType.ROOM_BOSS
-		local isGreedMode = CoopGame:IsGreedMode()
-		
-		if isCollectible and isBossRoom and not isGreedMode then
-			local itemConfig = Isaac:GetItemConfig()
-			
-			if itemConfig:GetCollectible(pickup.SubType).Type == ItemType.ITEM_ACTIVE then
-				pickup:Morph(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, 0, true)
-			end
-		end
-	end
-end
-
 CoopMod:AddCallback(ModCallbacks.MC_POST_RENDER, CoopMod.OnGameRender)
 CoopMod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, CoopMod.OnEvaluateCache)
 CoopMod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, CoopMod.OnChangeRoom)
-CoopMod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, CoopMod.OnPickupInit)
 
 if ModConfigLoaded then
 	local json = require("json")
@@ -392,29 +374,6 @@ if ModConfigLoaded then
 				CoopSettings["UseButton"] = currentBool
 			end,
 			Info = "Highlights players and name only when the TAB key is pressed"
-		}
-	)
-	
-	ModConfig.AddSetting
-	(
-		CoopName,
-		"General",
-		{
-			Type = ModConfigMenu.OptionType.BOOLEAN,
-			CurrentSetting = function()
-				return CoopSettings["FixBossRoom"]
-			end,
-			Display = function()
-				local onOff = "Off"
-				if CoopSettings["FixBossRoom"] then
-					onOff = "On"
-				end
-				return "Fix boss room: " .. onOff
-			end,
-			OnChange = function(currentBool)
-				CoopSettings["FixBossRoom"] = currentBool
-			end,
-			Info = "Prevent active items from spawning in boss rooms"
 		}
 	)
 	
