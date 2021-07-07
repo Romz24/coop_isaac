@@ -3,11 +3,20 @@
     <name>[REP] Co-op plus</name>
     <directory>coop_plus</directory>
     <id>2501836735</id>
-    <description>A mod that slightly expands the co-op mode. You have probably often come across the fact that sometimes it is difficult to figure out where who is, this mod highlights characters with color and displays his name.
+    <description>A mod that expands and adds accessibility features to co-op mode in [b]Repentance[/b].
 
-Use the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2487535818]Mod Config Menu[/url] to customize the mod for yourself.
+If you've been playing in co-op a lot, you've probably noticed by now that it's really easy to lose yourself on the screen and get confused about which character you're controlling sometimes. This mod aims to add several accessibility features, all configurable through [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2487535818]Mod Config Menu[/url] to alleviate that, and overall improve the co-op experience.
 
-The mod is fully compatible with the [b]Repentance[/b] add-on.</description>
+Currently, it adds the following features:
+[list]
+[*] Colored Player Labels
+[*] Player Label Opacity
+[*] Colored Players
+[*] Colored Tears
+[*] Per-Player Color Customization
+[*] Ghost Visibility
+[*] Ghost Flight
+[/list]</description>
     <version>1.10</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
