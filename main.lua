@@ -198,7 +198,7 @@ function CoopMod:OnGameRender()
 			end
 		end
 		
-		if not player.Visible and (not player:IsCoopGhost() or CoopSettings["GhostShow"]) then
+		if not player.Visible and (not player:IsCoopGhost() or CoopSettings["GhostShow"]) and (player:GetPlayerType() ~= PlayerType.PLAYER_THEFORGOTTEN_B or player:IsCoopGhost()) then
 			player.Position = GetAlivePlayerPosition()
 			player.ControlsCooldown = 0
 			player.ControlsEnabled = true
@@ -212,7 +212,7 @@ function CoopMod:OnGameRender()
 				player:SetColor(CoopPlayers.Character[index], 2, 100, false, false)
 			end
 			
-			if CoopFont:IsLoaded() and CoopSettings["ShowName"] then
+			if CoopFont:IsLoaded() and CoopSettings["ShowName"] and player.Visible then
 				local position = Isaac.WorldToScreen(player.Position)
 				
 				if CoopMirrorRoom then
