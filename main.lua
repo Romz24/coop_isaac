@@ -29,7 +29,7 @@ local CoopSettings = {
 	["ShowName"] = true,
 	["UseButton"] = false,
 	["TearColor"] = true,
-	["GhostShow"] = false,
+	["GhostShow"] = true,
 	["GhostFly"] = true,
 	["NameAlpha"] = 3,
 }
