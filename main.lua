@@ -243,7 +243,9 @@ function CoopMod:OnEvaluateCache(player, cache)
 end
 
 function CoopMod:OnChangeRoom()
-	if CoopGame:GetLevel():GetAbsoluteStage() == LevelStage.STAGE1_2 then
+	local stage = CoopGame:GetLevel():GetAbsoluteStage()
+	
+	if stage == LevelStage.STAGE1_1 or stage == LevelStage.STAGE1_2 then
 		CoopMirrorRoom = IsMirrorRoom()
 	else
 		CoopMirrorRoom = false
