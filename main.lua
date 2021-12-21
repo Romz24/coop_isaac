@@ -86,20 +86,6 @@ local function GetScreenSize()
 	return Vector(rx*2 + 13*26, ry*2 + 7*26)
 end
 
-local function IsMirrorRoom()
-	local level = CoopGame:GetLevel()
-	
-	for i = 0, 168 do
-		local data = level:GetRoomByIdx(i).Data
-		
-		if data and data.Name == 'Knife Piece Room' then
-			return true
-		end
-	end
-	
-	return false
-end
-
 local function GetEmptyPlayerSlot()
 	local index = 0
 	
@@ -243,13 +229,7 @@ function CoopMod:OnEvaluateCache(player, cache)
 end
 
 function CoopMod:OnChangeRoom()
-	local stage = CoopGame:GetLevel():GetAbsoluteStage()
-	
-	if stage == LevelStage.STAGE1_1 or stage == LevelStage.STAGE1_2 then
-		CoopMirrorRoom = IsMirrorRoom()
-	else
-		CoopMirrorRoom = false
-	end
+	CoopMirrorRoom = CoopGame:GetLevel():GetCurrentRoom():IsMirrorWorld()
 end
 
 CoopMod:AddCallback(ModCallbacks.MC_POST_RENDER, CoopMod.OnGameRender)
