@@ -153,8 +153,10 @@ function CoopMod:OnGameRender()
 		CoopStart = true
 	end
 	
+	local showcolor = true
+	
 	if CoopSettings["UseButton"] and not IsButtonPressed() then
-		return false -- Button not pressed
+		showcolor = false
 	end
 	
 	for i = 1, CoopGame:GetNumPlayers() do
@@ -191,7 +193,7 @@ function CoopMod:OnGameRender()
 			player.Visible = true
 		end
 		
-		if not player:IsCoopGhost() or CoopSettings["GhostShow"] then
+		if (not player:IsCoopGhost() or CoopSettings["GhostShow"]) and showcolor then
 			local index = player:GetData()["CoopIndex"]
 			
 			if CoopSettings["ShowColor"] and CoopPlayers.Character[index] then
