@@ -121,11 +121,11 @@ end
 
 local function UpdatePlayersColor()
 	for i = 1, CoopPlayers.Max do
-		local player = CoopSettings["PlayerColor" .. i]
-		local color = CoopColors[player].color
+		local colorId = CoopSettings["PlayerColor" .. i]
+		local colorValue = CoopColors[colorId].color
 		
-		CoopPlayers.Character[i] = color
-		CoopPlayers.Name[i] = KColor(color.R, color.G, color.B, CoopSettings["NameAlpha"] / 10)
+		CoopPlayers.Character[i] = colorValue
+		CoopPlayers.Name[i] = KColor(colorValue.R, colorValue.G, colorValue.B, CoopSettings["NameAlpha"] / 10)
 	end
 end
 
@@ -170,10 +170,10 @@ function CoopMod:OnGameRender()
 		CoopStart = true
 	end
 	
-	local showcolor = true
+	local showColor = true
 	
 	if CoopSettings["UseButton"] and not IsButtonPressed() then
-		showcolor = false
+		showColor = false
 	end
 	
 	for i = 1, CoopGame:GetNumPlayers() do
@@ -210,7 +210,7 @@ function CoopMod:OnGameRender()
 			player.Visible = true
 		end
 		
-		if (not player:IsCoopGhost() or CoopSettings["GhostShow"]) and showcolor then
+		if (not player:IsCoopGhost() or CoopSettings["GhostShow"]) and showColor then
 			local index = player:GetData()["CoopIndex"]
 			
 			if CoopSettings["ShowColor"] and CoopPlayers.Character[index] then
