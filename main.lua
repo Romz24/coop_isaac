@@ -76,6 +76,23 @@ local function GetAlivePlayerPosition()
 	return Vector.Zero
 end
 
+local function GetRoomCenter()
+	local room = CoopGame:GetRoom()
+	local shape = room:GetRoomShape()
+	
+	if shape == RoomShape.ROOMSHAPE_1x1 or shape == RoomShape.ROOMSHAPE_IH or shape == RoomShape.ROOMSHAPE_IV then
+		return Vector(320.0, 280.0)
+	elseif shape == RoomShape.ROOMSHAPE_1x2 or shape == RoomShape.ROOMSHAPE_IIV then
+		return Vector(320.0, 420.0)
+	elseif shape == RoomShape.ROOMSHAPE_2x1 or shape == RoomShape.ROOMSHAPE_IIH then
+		return Vector(580.0, 280.0)
+	elseif shape == RoomShape.ROOMSHAPE_2x2 or shape == RoomShape.ROOMSHAPE_LTL or shape == RoomShape.ROOMSHAPE_LTR or shape == RoomShape.ROOMSHAPE_LBL or shape == RoomShape.ROOMSHAPE_LBR then
+		return Vector(580.0, 420.0)
+	end
+	
+	return room:GetCenterPos()
+end
+
 local function GetScreenSize()
 	local room = CoopGame:GetRoom()
 	local pos = room:WorldToScreenPosition(Vector.Zero) - room:GetRenderScrollOffset() - CoopGame.ScreenShakeOffset
@@ -177,7 +194,7 @@ function CoopMod:OnGameRender()
 		end
 		
 		if player:IsCoopGhost() and not CoopSettings["GhostShow"] then
-			player.Position = GetAlivePlayerPosition()
+			player.Position = GetRoomCenter()
 			player.ControlsCooldown = 1000
 			
 			if player.Visible then
