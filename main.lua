@@ -251,9 +251,29 @@ function CoopMod:OnChangeRoom()
 	CoopMirrorRoom = CoopGame:GetLevel():GetCurrentRoom():IsMirrorWorld()
 end
 
+function CoopMod:OnFamiliarUpdate(entity)
+	local player = entity.Player
+	
+	if player:IsCoopGhost() and not player.Visible then
+		entity.Visible = false
+	else
+		entity.Visible = true
+	end
+end
+
+function CoopMod:OnFamiliarCollision(entity, collider, low)
+	if not entity.Visible then
+		return true
+	end
+	
+	return nil
+end
+
 CoopMod:AddCallback(ModCallbacks.MC_POST_RENDER, CoopMod.OnGameRender)
 CoopMod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, CoopMod.OnEvaluateCache)
 CoopMod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, CoopMod.OnChangeRoom)
+CoopMod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, CoopMod.OnFamiliarUpdate)
+CoopMod:AddCallback(ModCallbacks.MC_PRE_FAMILIAR_COLLISION, CoopMod.OnFamiliarCollision)
 
 if ModConfigLoaded then
 	local json = require("json")
