@@ -194,7 +194,12 @@ function CoopMod:OnGameRender()
 		end
 		
 		if player:IsCoopGhost() and not CoopSettings["GhostShow"] then
-			player.Position = GetRoomCenter()
+			if CoopGame:IsGreedMode() then
+				player.Position = GetAlivePlayerPosition()
+			else
+				player.Position = GetRoomCenter()
+			end
+			
 			player.ControlsCooldown = 1000
 			
 			if player.Visible then
