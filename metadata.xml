@@ -17,7 +17,7 @@ Currently, it adds the following features:
 [*] Ghost Visibility
 [*] Ghost Flight
 [/list]</description>
-    <version>1.13</version>
+    <version>1.14</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Player Characters"/>
