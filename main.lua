@@ -257,12 +257,14 @@ function CoopMod:OnChangeRoom()
 end
 
 function CoopMod:OnFamiliarUpdate(entity)
-	local player = entity.Player
-	
-	if player:IsCoopGhost() and not player.Visible then
-		entity.Visible = false
-	else
-		entity.Visible = true
+	if entity.Variant ~= FamiliarVariant.VANISHING_TWIN then
+		local player = entity.Player
+		
+		if player:IsCoopGhost() and not player.Visible then
+			entity.Visible = false
+		else
+			entity.Visible = true
+		end
 	end
 end
 
